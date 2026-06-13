@@ -42,7 +42,7 @@ const HIDE_NAV_LABELS = ['クリエイタースタジオ', 'Creator Studio'];
 // Items to hide from もっと見る dropdown (by text label)
 const HIDE_DROPDOWN_LABELS = ['コミュニティ', 'Communities', 'ビジネスと広告', 'ビジネス', '広告', 'Business', 'Ads'];
 
-const PREMIUM_TITLES = ['プレミアムにサブスクライブ', 'Subscribe to Premium', 'Subscribe to X Premium'];
+const PREMIUM_TITLES = ['プレミアムにサブスクライブ', 'プレミアムにアップグレード', 'Subscribe to Premium', 'Subscribe to X Premium', 'Upgrade to Premium', 'Upgrade to X Premium'];
 
 // =========================================================================
 // LOGO

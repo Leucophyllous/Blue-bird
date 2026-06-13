@@ -37,12 +37,19 @@ a[href="/creator-studio"] {
 
 /* The exact aside element + its wrapper divs */
 aside[aria-label="プレミアムにサブスクライブ"],
+aside[aria-label="プレミアムにアップグレード"],
 aside[aria-label="Subscribe to Premium"],
 aside[aria-label="Subscribe to X Premium"],
+aside[aria-label="Upgrade to Premium"],
+aside[aria-label="Upgrade to X Premium"],
 div:has(> aside[aria-label="プレミアムにサブスクライブ"]),
+div:has(> aside[aria-label="プレミアムにアップグレード"]),
 div:has(> aside[aria-label="Subscribe to Premium"]),
+div:has(> aside[aria-label="Upgrade to Premium"]),
 div:has(> div > aside[aria-label="プレミアムにサブスクライブ"]),
-div:has(> div > aside[aria-label="Subscribe to Premium"]) {
+div:has(> div > aside[aria-label="プレミアムにアップグレード"]),
+div:has(> div > aside[aria-label="Subscribe to Premium"]),
+div:has(> div > aside[aria-label="Upgrade to Premium"]) {
   display: none !important;
 }
 
