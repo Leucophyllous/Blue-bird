@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# AI-generated working artifacts
+Gemini_Generated_Image_*.jpg
+Gemini_Generated_Image_*.png
+
+# Packaged builds
+*.zip

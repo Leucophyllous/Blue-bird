@@ -233,9 +233,11 @@ function hideDropdownItems() {
   for (const menu of document.querySelectorAll('[role="menu"], [data-testid="Dropdown"]')) {
     for (const link of menu.querySelectorAll('a')) {
       const text = link.textContent.trim();
-      if (!HIDE_DROPDOWN_LABELS.some(l => text === l || text.startsWith(l))) continue;
-      const row = link.parentElement !== menu ? link.parentElement : link;
-      row.style.display = 'none';
+      // Exact match only — avoid catching e.g. "コミュニティノートをリクエスト"
+      if (!HIDE_DROPDOWN_LABELS.some(l => text === l)) continue;
+      // Hide only this menu item, never climb to a container with siblings
+      const item = link.closest('[role="menuitem"]') || link;
+      item.style.display = 'none';
     }
   }
 }

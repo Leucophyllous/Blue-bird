@@ -183,16 +183,19 @@ svg[data-tw-dm] path {
 /* =========================================================
    HIDE: Sidebar module overflow menu (three-dot on 本日のニュース etc.)
    X uses data-testid="caret" for these section overflow buttons.
+   Scope to the RIGHT sidebar only — the same testid is used by tweet
+   "…" menus and others that must stay visible.
    ========================================================= */
-[data-testid="caret"] {
+[data-testid="sidebarColumn"] [data-testid="caret"] {
   display: none !important;
 }
 
 /* =========================================================
-   HIDE: Grok share SVG (unusual 33x32 viewBox) + floating element
+   HIDE: Grok share SVG (unusual 33x32 viewBox) + its floating container
+   NOTE: target by CONTENT, not by X's random r-* classes (they change
+   frequently and are shared by unrelated elements).
    ========================================================= */
-svg[viewBox="0 0 33 32"],
-div.css-175oi2r.r-xoduu5.r-1p0dtai.r-1d2f490.r-u8s1d.r-zchlnj.r-ipm5af.r-loe9s5.r-sdzlij.r-xf4iuw {
+svg[viewBox="0 0 33 32"] {
   display: none !important;
 }
 
