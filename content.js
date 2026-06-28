@@ -34,6 +34,7 @@ const TEXT_REPLACEMENTS = [
   ['いまを見つけよう',        'いまどうしてる？'],
   ['設定とプライバシー',      '設定とサポート'],
   ['Settings and privacy',    'Settings and support'],
+  ['Xでライブ放送する',       'Twitterでライブ放送する'],
 ];
 
 const HIDE_HREFS      = ['/premium', '/i/creator-studio', '/i/creator_studio', '/creator_studio', '/creator-studio'];
