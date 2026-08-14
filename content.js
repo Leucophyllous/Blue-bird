@@ -20,6 +20,10 @@ const COMMUNITY_ICON_PATH =
 
 const X_PATH_PREFIX = 'M18.244 2.25h3.308';
 
+// Bookmark icon path used by a nav/menu item currently mislabeled "履歴"
+const BOOKMARK_ICON_PATH =
+  'M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z';
+
 // ── Text replacements ─────────────────────────────────────────────────────
 const TEXT_REPLACEMENTS = [
   ['引用ポスト',              '引用ツイート'],
@@ -184,25 +188,37 @@ function addCommunityNavItem() {
   cloneLink.setAttribute('href', COMMUNITY_HREF);
   cloneLink.removeAttribute('aria-current');
   cloneLink.removeAttribute('aria-label');
+  // Don't keep the source row's data-testid — X measures/positions nav rows by
+  // this key, and two elements sharing it (this clone + the real source row)
+  // causes the clone's icon to drift out of alignment, especially when the
+  // sidebar collapses to icon-only.
+  cloneLink.setAttribute('data-testid', 'AppTabBar_Community_Link');
 
-  // Replace icon: keep the source SVG's native sizing/viewBox, only swap the path(s)
+  // Replace icon: keep the source SVG's native sizing/viewBox, only swap the path(s).
+  // The community glyph's own bounding box (y: 2-17) sits higher than the 24x24
+  // viewBox center, unlike the other (optically-centered) nav icons, so nudge it
+  // down — otherwise it visibly drifts when the sidebar collapses to icon-only.
   for (const svg of clone.querySelectorAll('svg')) {
     svg.setAttribute('data-tw-community-svg', '1');
     svg.querySelectorAll('text').forEach(t => t.remove());
     const g = svg.querySelector('g');
     const container = g || svg;
-    container.innerHTML = `<path d="${COMMUNITY_ICON_PATH}"/>`;
+    container.innerHTML = `<path d="${COMMUNITY_ICON_PATH}" transform="translate(0,2.5)"/>`;
   }
 
-  // Remove any notification/badge counters carried over from the source row
-  clone.querySelectorAll('[aria-label][data-testid]').forEach(el => {
-    if (/通知|notification/i.test(el.getAttribute('aria-label') || '')) el.remove();
+  // Remove any notification/unread badge counters carried over from the source row
+  // (e.g. aria-label="1件の未読項目") — these don't always carry data-testid, so
+  // match on aria-label alone or the row won't clean up and its number span will
+  // get mistaken for the label text below.
+  clone.querySelectorAll('[aria-label]').forEach(el => {
+    if (/未読|通知|notification|unread/i.test(el.getAttribute('aria-label') || '')) el.remove();
   });
 
   // Fix label text — replace the first non-empty leaf span's text
   for (const span of clone.querySelectorAll('span')) {
     if (span.children.length === 0 && span.textContent.trim()) {
       span.textContent = 'コミュニティ';
+      span.style.setProperty('font-weight', '400', 'important');
       break;
     }
   }
@@ -211,6 +227,28 @@ function addCommunityNavItem() {
   exploreRow.after(clone);
 
   updateCommunityIcons();
+  syncCommunityLabelVisibility();
+}
+
+// =========================================================================
+// SYNC COMMUNITY LABEL VISIBILITY — when the sidebar collapses to icon-only,
+// X doesn't hide each row's label via CSS, it unmounts the label element from
+// the DOM entirely. Our clone is static (outside React), so its label div
+// never gets removed and its leftover space pushes the icon out of alignment.
+// Mirror the home row's label presence onto the clone every update tick.
+// =========================================================================
+function syncCommunityLabelVisibility() {
+  const clone = document.querySelector('[data-tw-community-nav]');
+  if (!clone) return;
+  const homeLink = document.querySelector('nav a[href="/home"]');
+  const refRow = homeLink ? navRowOf(homeLink) : null;
+  if (!refRow) return;
+
+  const refLabelWrap = refRow.querySelector('div[dir="ltr"]');
+  const cloneLabelWrap = clone.querySelector('div[dir="ltr"]');
+  if (!cloneLabelWrap) return;
+
+  cloneLabelWrap.style.display = refLabelWrap ? '' : 'none';
 }
 
 // =========================================================================
@@ -219,11 +257,29 @@ function addCommunityNavItem() {
 function updateCommunityIcons() {
   for (const svg of document.querySelectorAll('svg[data-tw-community-svg]')) {
     const paths = svg.querySelectorAll('path');
-    // Exactly one path with the right d → nothing to do
-    if (paths.length === 1 && paths[0].getAttribute('d') === COMMUNITY_ICON_PATH) continue;
+    // Exactly one correctly-centered path → nothing to do
+    if (paths.length === 1 && paths[0].getAttribute('d') === COMMUNITY_ICON_PATH &&
+        paths[0].getAttribute('transform') === 'translate(0,2.5)') continue;
     // Otherwise rebuild: one path inside the <g> (or svg) container
     const container = svg.querySelector('g') || svg;
-    container.innerHTML = `<path d="${COMMUNITY_ICON_PATH}"/>`;
+    container.innerHTML = `<path d="${COMMUNITY_ICON_PATH}" transform="translate(0,2.5)"/>`;
+  }
+}
+
+// =========================================================================
+// FIX "履歴" LABEL — the bookmark-icon nav/menu item should read "ブックマーク"
+// =========================================================================
+function fixBookmarkLabel() {
+  for (const svg of document.querySelectorAll('svg')) {
+    const p = svg.querySelector('path');
+    if (!p || p.getAttribute('d') !== BOOKMARK_ICON_PATH) continue;
+    const container = svg.closest('a, div[role="menuitem"], div[role="link"]');
+    if (!container) continue;
+    for (const span of container.querySelectorAll('span')) {
+      if (span.children.length === 0 && span.textContent.trim() === '履歴') {
+        span.textContent = 'ブックマーク';
+      }
+    }
   }
 }
 
@@ -350,8 +406,8 @@ function scheduleUpdate() {
   rafId = requestAnimationFrame(() => {
     rafId = null;
     replaceLogos(); replaceExploreIcon(); replaceNavIcons();
-    addCommunityNavItem(); updateCommunityIcons(); hideNavItems(); hideDropdownItems();
-    hidePremiumBanners(); fixSearchPlaceholders(); fixTitle();
+    addCommunityNavItem(); updateCommunityIcons(); syncCommunityLabelVisibility(); hideNavItems(); hideDropdownItems();
+    fixBookmarkLabel(); hidePremiumBanners(); fixSearchPlaceholders(); fixTitle();
   });
 }
 
@@ -375,7 +431,7 @@ const observer = new MutationObserver(mutations => {
 function init() {
   replaceLogos(); replaceExploreIcon(); replaceNavIcons();
   addCommunityNavItem(); hideNavItems(); hideDropdownItems();
-  hidePremiumBanners(); fixSearchPlaceholders();
+  fixBookmarkLabel(); hidePremiumBanners(); fixSearchPlaceholders();
   walkText(document.body);
   fixTitle(); fixFavicon();
   observer.observe(document.body, { childList:true, subtree:true, characterData:true });

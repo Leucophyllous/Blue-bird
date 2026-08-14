@@ -210,6 +210,10 @@ svg[data-tw-community-svg] path {
   stroke-linecap: round !important;
 }
 
+[data-tw-community-nav] span[dir] {
+  font-weight: 400 !important;
+}
+
 /* =========================================================
    MISC
    ========================================================= */
